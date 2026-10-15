@@ -1,0 +1,8 @@
+{
+  "name": "crab-puck",
+  "version": "1.0.0",
+  "description": "A pixel-art crab on a LilyGO T-Display that shows what Claude Code is doing: working, waiting for approval, done, error, asleep.",
+  "author": { "name": "Lorenz" },
+  "license": "MIT",
+  "keywords": ["hardware", "esp32", "status", "hooks", "t-display"]
+}

@@ -1,0 +1,71 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook 2>/dev/null || python \"${CLAUDE_PLUGIN_ROOT}/hooks/crab.py\" --hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

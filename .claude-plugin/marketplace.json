@@ -1,0 +1,14 @@
+{
+  "name": "crab-puck",
+  "description": "Claude Code status crab for the LilyGO T-Display",
+  "owner": {
+    "name": "Lorenz"
+  },
+  "plugins": [
+    {
+      "name": "crab-puck",
+      "source": "./",
+      "description": "A pixel-art crab on a LilyGO T-Display that shows what Claude Code is doing."
+    }
+  ]
+}

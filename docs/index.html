@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crab Puck Flasher</title>
+  <script type="module" src="https://unpkg.com/esp-web-tools@10.1.0/dist/web/install-button.js?module"></script>
+  <style>
+    :root {
+      --bg: #f6f3ee; --fg: #1d1b19; --muted: #6b655e; --accent: #d9622b; --card: #ffffff; --line: #e4ddd3;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #151413; --fg: #ece7e1; --muted: #9d968e; --accent: #f08350; --card: #1f1d1b; --line: #33302c; }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { max-width: 640px; margin: 0 auto; padding: 48px 16px 64px; }
+    h1 { font-size: 2rem; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 32px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    ol { padding-left: 20px; margin: 0; }
+    li { margin-bottom: 8px; }
+    code { background: var(--line); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+    a { color: var(--accent); }
+    esp-web-install-button button[slot="activate"] {
+      background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+      padding: 12px 22px; font: 600 16px system-ui, sans-serif; cursor: pointer;
+    }
+    .warn { color: var(--muted); font-size: .9rem; margin-top: 12px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🦀 Crab Puck</h1>
+  <p class="sub">A desk crab that shows what Claude Code is doing. Flash it to a LilyGO TTGO T-Display from your browser.</p>
+
+  <div class="card">
+    <ol>
+      <li>Plug the T-Display into this computer with a USB-C <em>data</em> cable.</li>
+      <li>Click the button and pick the board's serial port.</li>
+      <li>Choose <strong>Install</strong>. This erases whatever is on the board.</li>
+    </ol>
+    <p style="margin:20px 0 0">
+      <esp-web-install-button manifest="manifest.json">
+        <button slot="activate">Connect &amp; install</button>
+        <span slot="unsupported">Your browser can't flash boards. Use Chrome or Edge on a desktop.</span>
+        <span slot="not-allowed">Flashing needs a secure (https) page.</span>
+      </esp-web-install-button>
+    </p>
+    <p class="warn">If no port shows up, install the board's USB driver (CH9102 or CP2104). If flashing won't start, hold the bottom button while clicking Connect.</p>
+  </div>
+
+  <div class="card">
+    <strong>Next:</strong> add the hooks to Claude Code.
+    <ol style="margin-top:10px">
+      <li><code>pip install pyserial</code></li>
+      <li>In Claude Code: <code>/plugin marketplace add lorenzwolf/crab-puck</code></li>
+      <li>Then: <code>/plugin install crab-puck@crab-puck</code></li>
+    </ol>
+    <p class="warn">Full details in the <a href="https://github.com/lorenzwolf/crab-puck">README</a>.</p>
+  </div>
+</main>
+</body>
+</html>
