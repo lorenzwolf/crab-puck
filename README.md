@@ -3,6 +3,8 @@
 A physical status indicator for Claude Code, running on a LilyGO TTGO T-Display.
 An animated pixel-art crab reacts to what Claude is doing.
 
+<p align="center"><img src="media/hero.gif" width="480" alt="The crab dancing, juggling while Claude works, asking for approval, celebrating, moonwalking, and playing crab catch"></p>
+
 ## Quick start
 
 You need a **LilyGO TTGO T-Display** (the ESP32 one with the 1.14" screen,
@@ -31,6 +33,39 @@ The hooks read the tail of your local Claude Code transcript to show the
 model name and context size. Nothing leaves your machine except the line
 sent to the board over USB, which is the state, a short detail, the model
 name and two numbers.
+
+## Gallery
+
+Captured straight from the display's frame buffer, so these are exact frames at the board's real 25 fps.
+
+### Status
+
+<table>
+<tr><td align="center"><img src="media/working-scuttle.gif" width="240" alt="working: scuttling"><br><sub>working: scuttling</sub></td><td align="center"><img src="media/approval.gif" width="240" alt="approval: needs you"><br><sub>approval: needs you</sub></td></tr>
+<tr><td align="center"><img src="media/done.gif" width="240" alt="done: confetti"><br><sub>done: confetti</sub></td><td align="center"><img src="media/error.gif" width="240" alt="error: slumped, X eyes"><br><sub>error: slumped, X eyes</sub></td></tr>
+<tr><td align="center"><img src="media/asleep.gif" width="240" alt="asleep"><br><sub>asleep</sub></td><td align="center"><img src="media/working-type.gif" width="240" alt="working: typing"><br><sub>working: typing</sub></td></tr>
+<tr><td align="center"><img src="media/working-juggle.gif" width="240" alt="working: juggling"><br><sub>working: juggling</sub></td><td align="center"><img src="media/working-hammer.gif" width="240" alt="working: hammering"><br><sub>working: hammering</sub></td></tr>
+</table>
+
+### Idle vignettes
+
+Between jobs the crab amuses itself with one of 24 random bits of business.
+
+<table>
+<tr><td align="center"><img src="media/idle-dance.gif" width="240" alt="dance"><br><sub>dance</sub></td><td align="center"><img src="media/idle-moonwalk.gif" width="240" alt="moonwalk"><br><sub>moonwalk</sub></td></tr>
+<tr><td align="center"><img src="media/idle-bubbles.gif" width="240" alt="blowing bubbles"><br><sub>blowing bubbles</sub></td><td align="center"><img src="media/idle-dig.gif" width="240" alt="digging"><br><sub>digging</sub></td></tr>
+<tr><td align="center"><img src="media/idle-handstand.gif" width="240" alt="handstand"><br><sub>handstand</sub></td><td align="center"><img src="media/idle-sneeze.gif" width="240" alt="sneeze"><br><sub>sneeze</sub></td></tr>
+<tr><td align="center"><img src="media/idle-flex.gif" width="240" alt="flex"><br><sub>flex</sub></td><td align="center"><img src="media/idle-applaud.gif" width="240" alt="applause"><br><sub>applause</sub></td></tr>
+<tr><td align="center"><img src="media/idle-ponder.gif" width="240" alt="pondering"><br><sub>pondering</sub></td><td align="center"><img src="media/idle-snooze.gif" width="240" alt="snooze"><br><sub>snooze</sub></td></tr>
+</table>
+
+### Crab catch
+
+Hold the bottom button to play. Catch pearls, dodge anchors.
+
+<table>
+<tr><td align="center"><img src="media/game.gif" width="240" alt="crab catch"><br><sub>crab catch</sub></td><td align="center"><img src="media/game-over.png" width="240" alt="game over"><br><sub>game over</sub></td></tr>
+</table>
 
 ## Hardware
 
@@ -201,6 +236,18 @@ To refresh the web flasher image after a change:
 
 ```
 python -m esptool --chip esp32 merge-bin -o docs/firmware/crab-puck.bin   --flash-mode dio --flash-freq 40m --flash-size 4MB   0x1000 .pio/build/crabpuck/bootloader.bin 0x8000 .pio/build/crabpuck/partitions.bin   0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin   0x10000 .pio/build/crabpuck/firmware.bin
+```
+
+### Recording the gallery
+
+The `capture` build streams every finished frame over USB at 2 Mbaud, and
+`tools/capture.py` turns them into the GIFs above (needs pyserial and Pillow).
+It can also drive the game with an autopilot, so no hands are needed.
+
+```
+pio run -e capture -t upload
+python tools/capture.py            # or: --only done,game
+pio run -e crabpuck -t upload      # back to normal; the hooks need this build
 ```
 
 ## Licence

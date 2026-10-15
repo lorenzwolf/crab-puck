@@ -414,10 +414,53 @@ static void spawnFaller() {
     }
 }
 
+#ifdef CRAB_CAPTURE
+// Capture build only: plays the game so it can be recorded without hands on
+// the buttons. Mode 1 chases the lowest pearl and sidesteps anchors about to
+// land; mode 2 walks into anchors, for a quick game-over card; 0 sits still.
+static uint8_t autopilot = 1;
+
+static void autoSteer(bool &left, bool &right) {
+    left = right = false;
+    lastInput = millis();  // never trip the walked-off timeout while recording
+    if (!autopilot) return;
+    float target = crabX;
+    if (autopilot == 2) {
+        float lowest = -99;
+        for (int i = 0; i < MAXF; i++)
+            if (FL[i].live && FL[i].kind == 1 && FL[i].y < G_CY && FL[i].y > lowest) {
+                lowest = FL[i].y;
+                target = FL[i].x;
+            }
+        if (target < crabX - 3) left = true;
+        else if (target > crabX + 3) right = true;
+        return;
+    }
+    float bestY = -99;
+    for (int i = 0; i < MAXF; i++) {
+        if (!FL[i].live || FL[i].kind == 1 || FL[i].y > G_CY) continue;
+        if (FL[i].y > bestY) { bestY = FL[i].y; target = FL[i].x; }
+    }
+    for (int i = 0; i < MAXF; i++) {
+        if (!FL[i].live || FL[i].kind != 1) continue;
+        if (FL[i].y < G_CY - 55 || FL[i].y > G_CY + 4) continue;
+        float d = crabX - FL[i].x;
+        if (fabsf(d) < G_HALF + 10) target = crabX + (d >= 0 ? 40 : -40);
+        if (target < G_HALF + 2) target = FL[i].x + 50;
+        if (target > SCR_W - G_HALF - 2) target = FL[i].x - 50;
+    }
+    if (target < crabX - 5) left = true;
+    else if (target > crabX + 5) right = true;
+}
+#endif
+
 static void gameUpdate() {
     bool left = swapCtl ? bBot.down : bTop.down;
     bool right = swapCtl ? bTop.down : bBot.down;
     if (bTop.down || bBot.down) lastInput = millis();
+#ifdef CRAB_CAPTURE
+    autoSteer(left, right);
+#endif
 
     if (gamePhase == G_READY && gameTimer) {
         gameTimer--;
@@ -655,8 +698,85 @@ static void setState(State s, const char *text) {
     setBacklight(state == ST_ASLEEP ? 10 : BRIGHT[brightness]);
 }
 
+#ifdef CRAB_CAPTURE
+// ------------------------------------------------------------------ capture
+// Capture build only (pio run -e capture). Streams finished frames over
+// serial so tools/capture.py can turn them into GIFs. Animation is driven by
+// the frame counter, so a slow link just slows the loop down - every frame
+// still arrives, and the GIF plays back at the real 25 fps.
+//
+//   !stream N    send the next N frames
+//   !vig K       start idle vignette K        !motif K   start work motif K
+//   !game        start crab catch             !ai 0|1|2  autopilot off/play/lose
+//
+// Frame: "FRM", u32 payload length, then runs of (u8 count, u16 pixel as
+// stored in the sprite, i.e. byte-swapped RGB565).
+static uint32_t capFrames = 0;
+
+static void capSend() {
+    if (!capFrames) return;
+    capFrames--;
+    const uint16_t *px = (const uint16_t *)fb.getPointer();
+    const int n = SCR_W * SCR_H;
+    uint32_t len = 0;
+    for (int i = 0; i < n;) {
+        int r = 1;
+        while (i + r < n && r < 255 && px[i + r] == px[i]) r++;
+        len += 3;
+        i += r;
+    }
+    uint8_t hdr[7] = {'F', 'R', 'M', (uint8_t)len, (uint8_t)(len >> 8),
+                      (uint8_t)(len >> 16), (uint8_t)(len >> 24)};
+    Serial.write(hdr, sizeof(hdr));
+    static uint8_t buf[1536];
+    int b = 0;
+    for (int i = 0; i < n;) {
+        int r = 1;
+        while (i + r < n && r < 255 && px[i + r] == px[i]) r++;
+        buf[b++] = r;
+        buf[b++] = px[i] & 0xFF;
+        buf[b++] = px[i] >> 8;
+        if (b >= (int)sizeof(buf) - 3) {
+            Serial.write(buf, b);
+            b = 0;
+        }
+        i += r;
+    }
+    if (b) Serial.write(buf, b);
+    Serial.flush();
+}
+
+static void gameEnter();
+
+static void capCommand(char *cmd) {
+    char *arg = strchr(cmd, ' ');
+    int v = arg ? atoi(arg + 1) : 0;
+    if (!strncmp(cmd, "stream", 6)) {
+        capFrames = v;
+    } else if (!strncmp(cmd, "vig", 3)) {
+        vignette = v % V_COUNT;
+        vigUntil = frame + V_FRAMES[vignette];
+    } else if (!strncmp(cmd, "motif", 5)) {
+        motif = v % W_COUNT;
+        motifUntil = frame + 100000;
+    } else if (!strncmp(cmd, "game", 4)) {
+        gameEnter();
+    } else if (!strncmp(cmd, "ai", 2)) {
+        autopilot = v;
+    }
+    Serial.print("ok !");
+    Serial.println(cmd);
+}
+#endif
+
 // state|detail|model|used|max - every field after the state is optional
 static void handleLine(char *line) {
+#ifdef CRAB_CAPTURE
+    if (line[0] == '!') {
+        capCommand(line + 1);
+        return;
+    }
+#endif
     char *f[5] = {line, NULL, NULL, NULL, NULL};
     int n = 1;
     for (char *p = line; *p && n < 5; p++) {
@@ -1299,7 +1419,12 @@ static void render() {
 }
 
 void setup() {
+#ifdef CRAB_CAPTURE
+    Serial.setTxBufferSize(8192);
+    Serial.begin(2000000);
+#else
     Serial.begin(115200);
+#endif
     pinMode(PIN_BTN_TOP, INPUT_PULLUP);
     pinMode(PIN_BTN_BOT, INPUT_PULLUP);
 
@@ -1349,6 +1474,9 @@ void loop() {
         gameUpdate();
         gameRender();
     }
+#ifdef CRAB_CAPTURE
+    capSend();
+#endif
     frame++;
     delay(40);
 }
